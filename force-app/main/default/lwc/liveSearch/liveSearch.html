@@ -1,0 +1,19 @@
+<template>
+  <lightning-card title="Live Search">
+    <div class="slds-m-around_medium">
+      <lightning-input
+        label="Search Documents"
+        value={searchTerm}
+        onchange={handleSearch}
+      ></lightning-input>
+    </div>
+    <div class="slds-m-around_medium">
+      <lightning-datatable
+        data={documents}
+        columns={columns}
+        key-field="Id"
+        onrowaction={handleRowAction}
+      ></lightning-datatable>
+    </div>
+  </lightning-card>
+</template>
