@@ -1,17 +1,18 @@
 import { LightningElement, wire, track } from 'lwc';
 import { refreshApex } from '@salesforce/apex';
 import searchDocuments from '@salesforce/apex/DocumentController.searchDocuments';
-import { deleteRecord } from 'lightning/uiRecordApi';
+import { deleteRecord, updateRecord } from 'lightning/uiRecordApi';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 const columns = [
-  { label: 'Name', fieldName: 'Name', type: 'text' },
+  { label: 'Name', fieldName: 'Name', type: 'text', editable: true },
   { label: 'Document Version', fieldName: 'Document_Version__c', type: 'text' },
-  { label: 'Document Category', fieldName: 'Document_Category__c', type: 'text' },
+  { label: 'Document Category', fieldName: 'Document_Category__c', type: 'text' }, 
   {
     type: 'action',
     typeAttributes: {
       rowActions: [
-        { label: 'Edit', name: 'edit' },
+        // { label: 'Edit', name: 'edit' },
         { label: 'Delete', name: 'delete' }
       ]
     }
@@ -23,7 +24,7 @@ export default class LiveSearch extends LightningElement {
   @track documents;
   @track error;
   @track originalData; // To store the original data before searching
-
+  fldsItemValues = [];
   columns = columns;
 
   handleSearch(event) {
@@ -31,7 +32,7 @@ export default class LiveSearch extends LightningElement {
     if (this.searchTerm.length >= 2) {
       this.searchDocuments();
     } else {
-      this.documents = this.originalData; // Restore original data when search term is empty
+      this.documents = this.originalData; // Restore original data when the search term is empty
     }
   }
 
@@ -45,7 +46,7 @@ export default class LiveSearch extends LightningElement {
         Document_Version__c: doc.Document_Version__c,
         Document_Category__c: doc.Document_Category__c
       }));
-      this.originalData = data; // Store the original data when fetched from server
+      this.originalData = data; // Store the original data when fetched from the server
       this.error = null;
     } else if (error) {
       this.error = error;
@@ -96,4 +97,41 @@ export default class LiveSearch extends LightningElement {
         // Handle the error, if any
       });
   }
+
+  saveHandleAction(event) {
+    this.fldsItemValues = event.detail.draftValues;
+    const inputsItems = this.fldsItemValues.slice().map(draft => {
+        const fields = Object.assign({}, draft);
+        return { fields };
+    });
+ 
+    const promises = inputsItems.map(recordInput => updateRecord(recordInput));
+    Promise.all(promises).then(res => {
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title: 'Success',
+                message: 'Records Updated Successfully!!',
+                variant: 'success'
+            })
+        );
+        this.fldsItemValues = [];
+        return this.refresh();
+    }).catch(error => {
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title: 'Error',
+                message: 'An Error Occured!!',
+                variant: 'error'
+            })
+        );
+    }).finally(() => {
+        this.fldsItemValues = [];
+    });
+}
+
+
+
+async refresh() {
+    await refreshApex(this.documents);
+}
 }

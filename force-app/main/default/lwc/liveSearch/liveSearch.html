@@ -12,7 +12,9 @@
         data={documents}
         columns={columns}
         key-field="Id"
+        onsave={saveHandleAction}
         onrowaction={handleRowAction}
+        draft-values={fldsItemValues}
       ></lightning-datatable>
     </div>
   </lightning-card>

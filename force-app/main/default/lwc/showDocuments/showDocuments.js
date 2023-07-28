@@ -4,7 +4,7 @@ import getDocuments from '@salesforce/apex/DocumentController.getDocuments';
 import { updateRecord, deleteRecord } from 'lightning/uiRecordApi';
 
 const columns = [
-  { label: 'Name', fieldName: 'Name', type: 'text', sortable: true },
+  { label: 'Name', fieldName: 'Name', type: 'text', sortable: true , editable: true},
   { label: 'Document Version', fieldName: 'Document_Version__c', type: 'text', sortable: true },
   { label: 'Document Category', fieldName: 'Document_Category__c', type: 'text', sortable: true },
   {
@@ -22,9 +22,7 @@ export default class ShowDocuments extends LightningElement {
   @track documents;
   @track showModal = false;
   @track document = { Id: '', Name: '', Document_Version__c: '', Document_Category__c: '' };
-
   columns = columns;
-
   @wire(getDocuments)
   wiredDocuments({ error, data }) {
     if (data) {
